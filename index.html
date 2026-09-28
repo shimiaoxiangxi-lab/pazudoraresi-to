@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>パズドラ 画像レシートメーカー PRO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo">
+        <span class="logo-icon">📜</span>
+        <h1>パズドラ 画像レシートメーカー <span class="badge">PRO</span></h1>
+      </div>
+      <div class="header-actions">
+        <!-- Mode Switch Button: 周回モード ⇄ 編集モード -->
+        <button id="toggle-mode-btn" class="btn btn-mode-toggle" title="表示モードを切り替え">
+          👁️ 周回プレイモード (閲覧中)
+        </button>
+        
+        <button id="reset-checks-btn" class="btn btn-warning" title="周回用：すべての突破チェックを解除">🔄 レ点一括解除</button>
+        
+        <!-- Editable-only header buttons -->
+        <button id="new-receipt-btn" class="btn btn-primary edit-only-ui">+ 新規レシート</button>
+        <button id="add-floor-btn" class="btn btn-secondary edit-only-ui">+ 階層を追加</button>
+        <button id="save-receipt-btn" class="btn btn-success edit-only-ui">💾 レシートを保存</button>
+      </div>
+    </header>
+
+    <!-- Paste Notification Banner (Edit Only) -->
+    <div class="paste-toast-banner edit-only-ui" id="paste-toast">
+      📋 クリップボードからの画像ペースト（Ctrl+V）に対応中！
+    </div>
+
+    <!-- Main Content AREA -->
+    <main class="main-content">
+      <!-- Receipt Manager, Party Photo & Original Receipt Photo Card -->
+      <div class="card meta-card">
+        <div class="form-row meta-top-row">
+          <div class="form-group flex-2">
+            <label for="receipt-title-input">🏷️ ダンジョン名 / レシートタイトル:</label>
+            <input type="text" id="receipt-title-input" class="custom-input" value="14周年シンクロコロシアム1" placeholder="例: 14周年シンクロコロシアム1">
+          </div>
+          <div class="form-group flex-1">
+            <label for="receipt-select">📂 保存済みレシート切替・選択:</label>
+            <div class="select-with-del">
+              <select id="receipt-select" class="custom-select">
+                <!-- Dynamically populated -->
+              </select>
+              <button id="delete-receipt-btn" class="btn btn-danger btn-sm edit-only-ui" title="このレシート全体を削除">削除</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dual Photo Boxes Section: ALWAYS VISIBLE (Party Photo & Original Receipt Photo) -->
+        <div class="photos-dual-grid">
+          <!-- 1. Party Photo Box -->
+          <div class="photo-upload-container" id="container_party_photo">
+            <div class="photo-label-row">
+              <label>⚔️ パーティ編成写真 (PDC編成画像など):</label>
+              <a id="download-party-photo-btn" class="btn-download-img hidden" download="party_formation.png" title="この写真をダウンロード保存">💾 保存</a>
+            </div>
+            <div class="party-photo-box" id="party-photo-box" tabindex="0">
+              <input type="file" id="party-photo-input" accept="image/*" class="photo-input-hidden edit-only-ui">
+              <div class="party-placeholder" id="party-photo-placeholder">
+                <span class="placeholder-icon">📸</span>
+                <span class="placeholder-text">+ 編成画像選択 または 選択してCtrl+Vペースト</span>
+              </div>
+              <img id="party-photo-img" class="party-photo-img hidden" alt="Party Photo">
+              <button type="button" id="remove-party-photo-btn" class="remove-photo-btn hidden edit-only-ui" title="削除">✕</button>
+            </div>
+          </div>
+
+          <!-- 2. Original Receipt Photo Box -->
+          <div class="photo-upload-container" id="container_original_receipt">
+            <div class="photo-label-row">
+              <label>📜 レシート元画像 (全体立ち回り画像など):</label>
+              <a id="download-original-receipt-btn" class="btn-download-img hidden" download="original_receipt.png" title="この写真をダウンロード保存">💾 保存</a>
+            </div>
+            <div class="party-photo-box" id="original-receipt-photo-box" tabindex="0">
+              <input type="file" id="original-receipt-input" accept="image/*" class="photo-input-hidden edit-only-ui">
+              <div class="party-placeholder" id="original-receipt-placeholder">
+                <span class="placeholder-icon">📄</span>
+                <span class="placeholder-text">+ 元画像選択 または 選択してCtrl+Vペースト</span>
+              </div>
+              <img id="original-receipt-img" class="party-photo-img hidden" alt="Original Receipt Photo">
+              <button type="button" id="remove-original-receipt-btn" class="remove-photo-btn hidden edit-only-ui" title="削除">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Receipt Floors List -->
+      <div class="floors-container" id="floors-container">
+        <!-- Dynamically generated floor items -->
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
