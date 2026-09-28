@@ -267,7 +267,7 @@ body.play-mode .party-photo-box {
   object-fit: contain;
 }
 
-/* Delete Photo Button (High Visibility Red Circle) */
+/* Delete Photo Button */
 .remove-photo-btn {
   position: absolute;
   top: 4px;
@@ -313,41 +313,58 @@ body.play-mode .party-photo-box {
   transition: all 0.2s ease;
 }
 
-/* Main Floor Header Row */
+/* Main Floor Header Row: PERFECT ALIGNED FIXED GRID (フロア / 写真エリア固定 / 立ち回りテキスト) */
 .floor-main-line {
-  display: flex;
+  display: grid;
+  grid-template-columns: 46px 210px 1fr; /* Fixed columns alignment! */
   align-items: flex-start;
-  gap: 14px;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .floor-main-line {
+    grid-template-columns: 42px 140px 1fr;
+    gap: 10px;
+  }
 }
 
 /* Left Floor Badge (1F, 2F...) */
 .floor-badge-label {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 900;
   color: var(--text-main);
-  min-width: 46px;
+  width: 46px;
   text-align: center;
   background: linear-gradient(135deg, #1e293b, #0f172a);
   border: 1px solid var(--border-color);
-  padding: 8px 6px;
+  padding: 8px 0;
   border-radius: var(--radius-sm);
   align-self: flex-start;
 }
 
-/* Multi Photo Gallery */
+/* Multi Photo Gallery: FIXED WIDTH CONTAINER (210px) FOR PERFECT ALIGNMENT */
 .multi-photo-gallery {
+  width: 210px;
+  min-height: 72px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  max-width: 280px;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .multi-photo-gallery {
+    width: 140px;
+  }
 }
 
 .blue-photo-box {
   position: relative;
-  width: 76px;
-  height: 76px;
-  border: 3px solid var(--accent-blue);
+  width: 68px;
+  height: 68px;
+  border: 2px solid var(--accent-blue);
   border-radius: var(--radius-md);
   background: rgba(56, 189, 248, 0.05);
   display: flex;
@@ -366,15 +383,25 @@ body.play-mode .blue-photo-box {
   cursor: default;
 }
 
+.add-photo-btn-box {
+  border-style: dashed;
+  border-color: var(--border-color);
+  background: transparent;
+}
+
+.add-photo-btn-box:hover, .add-photo-btn-box:focus {
+  border-color: var(--accent-blue);
+}
+
 .preview-thumb-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-/* Turns Container */
+/* Turns Container: START LINE ALWAYS ALIGNED PERFECTLY! */
 .turns-container {
-  flex: 1;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -484,7 +511,7 @@ body.play-mode .blue-photo-box {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-left: 54px;
+  padding-left: 62px;
 }
 
 .branch-item {
@@ -522,7 +549,7 @@ body.play-mode .blue-photo-box {
   color: #e9d5ff;
 }
 
-/* HIDE EDIT UI IN PLAY MODE (周回閲覧モード時のクリーン化) */
+/* HIDE EDIT UI IN PLAY MODE */
 body.play-mode .edit-only-ui {
   display: none !important;
 }
