@@ -429,6 +429,7 @@ class PADSimpleReceiptAppV5 {
     this.importSyncCodeTextarea = document.getElementById("import-sync-code-textarea");
     this.importSyncCodeBtn = document.getElementById("import-sync-code-btn");
     this.downloadAppJsBtn = document.getElementById("download-app-js-btn");
+    this.loadDefaultReceiptsBtn = document.getElementById("load-default-receipts-btn");
     this.copyDefaultCodeBtn = document.getElementById("copy-default-code-btn");
   }
 
@@ -538,6 +539,9 @@ class PADSimpleReceiptAppV5 {
     }
     if (this.downloadAppJsBtn) {
       this.downloadAppJsBtn.addEventListener("click", () => this.downloadUpdatedAppJs());
+    }
+    if (this.loadDefaultReceiptsBtn) {
+      this.loadDefaultReceiptsBtn.addEventListener("click", () => this.loadDefaultReceipts());
     }
     if (this.copyDefaultCodeBtn) {
       this.copyDefaultCodeBtn.addEventListener("click", () => this.copyDefaultCode());
@@ -1234,6 +1238,25 @@ class PADSimpleReceiptAppV5 {
       document.execCommand("copy");
       document.body.removeChild(ta);
       this.showToastNotification("📋 DEFAULT_RECEIPTS 用コードをコピーしました！");
+    }
+  }
+
+  loadDefaultReceipts() {
+    const isConfirm = confirm(
+      "app.js に組み込まれている最新のレシートデータを読み込みますか？\n\n「OK」を押すと、画面に最新のレシートが反映されます。"
+    );
+    if (!isConfirm) return;
+    try {
+      this.receipts = JSON.parse(JSON.stringify(DEFAULT_RECEIPTS));
+      this.saveReceiptsToStorage();
+      this.renderReceiptSelect();
+      if (this.receipts.length > 0) {
+        this.selectReceiptById(this.receipts[0].id);
+      }
+      this.closeSyncModal();
+      this.showToastNotification("✅ app.js の最新レシートを反映しました！");
+    } catch (err) {
+      alert("読み込みエラー: " + err.message);
     }
   }
 
