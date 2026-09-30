@@ -105,6 +105,18 @@ class PADSimpleReceiptAppV5 {
     this.originalReceiptImg = document.getElementById("original-receipt-img");
     this.removeOriginalReceiptBtn = document.getElementById("remove-original-receipt-btn");
     this.downloadOriginalReceiptBtn = document.getElementById("download-original-receipt-btn");
+
+    // Sync & Backup Elements
+    this.openSyncModalBtn = document.getElementById("open-sync-modal-btn");
+    this.metaSyncBtn = document.getElementById("meta-sync-btn");
+    this.closeSyncModalBtn = document.getElementById("close-sync-modal-btn");
+    this.syncModal = document.getElementById("sync-modal");
+    this.exportJsonBtn = document.getElementById("export-json-btn");
+    this.importJsonInput = document.getElementById("import-json-input");
+    this.copySyncCodeBtn = document.getElementById("copy-sync-code-btn");
+    this.importSyncCodeTextarea = document.getElementById("import-sync-code-textarea");
+    this.importSyncCodeBtn = document.getElementById("import-sync-code-btn");
+    this.copyDefaultCodeBtn = document.getElementById("copy-default-code-btn");
   }
 
   initEvents() {
@@ -169,6 +181,48 @@ class PADSimpleReceiptAppV5 {
         this.showToastNotification("🗑️ レシート元画像を削除しました");
       }
     });
+
+    // Sync & Backup Events
+    if (this.openSyncModalBtn) {
+      this.openSyncModalBtn.addEventListener("click", () => this.openSyncModal());
+    }
+    if (this.metaSyncBtn) {
+      this.metaSyncBtn.addEventListener("click", () => this.openSyncModal());
+    }
+    if (this.closeSyncModalBtn) {
+      this.closeSyncModalBtn.addEventListener("click", () => this.closeSyncModal());
+    }
+    if (this.syncModal) {
+      this.syncModal.addEventListener("click", (e) => {
+        if (e.target === this.syncModal) this.closeSyncModal();
+      });
+    }
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && this.syncModal && !this.syncModal.classList.contains("hidden")) {
+        this.closeSyncModal();
+      }
+    });
+
+    if (this.exportJsonBtn) {
+      this.exportJsonBtn.addEventListener("click", () => this.exportJson());
+    }
+    if (this.importJsonInput) {
+      this.importJsonInput.addEventListener("change", (e) => {
+        if (e.target.files && e.target.files[0]) {
+          this.handleImportFile(e.target.files[0]);
+          e.target.value = ""; // reset for subsequent uploads
+        }
+      });
+    }
+    if (this.copySyncCodeBtn) {
+      this.copySyncCodeBtn.addEventListener("click", () => this.copySyncCode());
+    }
+    if (this.importSyncCodeBtn) {
+      this.importSyncCodeBtn.addEventListener("click", () => this.importSyncCode());
+    }
+    if (this.copyDefaultCodeBtn) {
+      this.copyDefaultCodeBtn.addEventListener("click", () => this.copyDefaultCode());
+    }
   }
 
   toggleDisplayMode() {
@@ -665,6 +719,134 @@ class PADSimpleReceiptAppV5 {
     this.saveReceiptsToStorage();
     this.renderReceiptSelect();
     this.showToastNotification(`💾 レシート「${this.currentReceipt.title}」を保存しました`);
+  }
+
+  /* ===== Data Sync & Backup Methods ===== */
+  openSyncModal() {
+    if (this.syncModal) {
+      this.syncModal.classList.remove("hidden");
+    }
+  }
+
+  closeSyncModal() {
+    if (this.syncModal) {
+      this.syncModal.classList.add("hidden");
+    }
+  }
+
+  exportJson() {
+    try {
+      const dataStr = JSON.stringify(this.receipts, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      a.href = url;
+      a.download = `pad_receipts_backup_${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      this.showToastNotification("📤 レシートデータをダウンロードしました");
+    } catch (err) {
+      alert("エクスポート中にエラーが発生しました: " + err.message);
+    }
+  }
+
+  handleImportFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        this.processImportedReceipts(importedData);
+      } catch (err) {
+        alert("JSONファイルの解析に失敗しました。正しいデータファイルかご確認ください。");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  async copySyncCode() {
+    try {
+      const codeStr = JSON.stringify(this.receipts);
+      await navigator.clipboard.writeText(codeStr);
+      this.showToastNotification("📋 同期コードをクリップボードにコピーしました！");
+    } catch (err) {
+      const ta = document.createElement("textarea");
+      ta.value = JSON.stringify(this.receipts);
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      this.showToastNotification("📋 同期コードをコピーしました！");
+    }
+  }
+
+  importSyncCode() {
+    const raw = this.importSyncCodeTextarea ? this.importSyncCodeTextarea.value.trim() : "";
+    if (!raw) {
+      alert("同期コードが入力されていません。テキストエリアにコードを貼り付けてください。");
+      return;
+    }
+    try {
+      const importedData = JSON.parse(raw);
+      this.processImportedReceipts(importedData);
+      if (this.importSyncCodeTextarea) {
+        this.importSyncCodeTextarea.value = "";
+      }
+    } catch (err) {
+      alert("同期コードの解析に失敗しました。貼り付けた内容に誤りがないかご確認ください。");
+    }
+  }
+
+  async copyDefaultCode() {
+    try {
+      const formattedCode = `const DEFAULT_RECEIPTS = ${JSON.stringify(this.receipts, null, 2)};`;
+      await navigator.clipboard.writeText(formattedCode);
+      this.showToastNotification("📋 DEFAULT_RECEIPTS 用のコードをコピーしました！");
+      alert("app.js用の初期データコードをコピーしました！\n\nローカルの app.js ファイルを開き、先頭の「const DEFAULT_RECEIPTS = [...]」の部分に上書き貼り付けして保存してください。");
+    } catch (err) {
+      const ta = document.createElement("textarea");
+      ta.value = `const DEFAULT_RECEIPTS = ${JSON.stringify(this.receipts, null, 2)};`;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      this.showToastNotification("📋 DEFAULT_RECEIPTS 用コードをコピーしました！");
+    }
+  }
+
+  processImportedReceipts(importedData) {
+    let list = Array.isArray(importedData) ? importedData : [importedData];
+    if (list.length === 0 || !list[0].floors) {
+      alert("有効なレシートデータが見つかりませんでした。");
+      return;
+    }
+
+    const isOverwrite = confirm(
+      `【確認】${list.length}件のレシートデータを検出しました。\n\n「OK」: すべて上書き（現在のデータを置き換え）\n「キャンセル」: 既存のデータに追加（マージ）`
+    );
+
+    if (isOverwrite) {
+      this.receipts = list;
+    } else {
+      const existingIds = new Set(this.receipts.map(r => r.id));
+      list.forEach(r => {
+        if (existingIds.has(r.id)) {
+          r.id = "receipt_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4);
+        }
+      });
+      this.receipts = [...list, ...this.receipts];
+    }
+
+    this.saveReceiptsToStorage();
+    this.renderReceiptSelect();
+    if (this.receipts.length > 0) {
+      this.selectReceiptById(this.receipts[0].id);
+    }
+    this.closeSyncModal();
+    this.showToastNotification(`✅ レシートデータを反映しました（計${this.receipts.length}件）`);
   }
 }
 

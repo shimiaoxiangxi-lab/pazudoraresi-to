@@ -22,6 +22,11 @@
         <button id="toggle-mode-btn" class="btn btn-mode-toggle" title="表示モードを切り替え">
           👁️ 周回プレイモード (閲覧中)
         </button>
+
+        <!-- Data Sync / Transfer button (Always visible) -->
+        <button id="open-sync-modal-btn" class="btn btn-sync" title="別端末へのデータ移行・バックアップ・ローカル反映">
+          🔄 データ同期・移行
+        </button>
         
         <button id="reset-checks-btn" class="btn btn-warning" title="周回用：すべての突破チェックを解除">🔄 レ点一括解除</button>
         
@@ -52,6 +57,7 @@
               <select id="receipt-select" class="custom-select">
                 <!-- Dynamically populated -->
               </select>
+              <button id="meta-sync-btn" class="btn btn-sync btn-sm" title="データ同期・移行・バックアップ">🔄 同期</button>
               <button id="delete-receipt-btn" class="btn btn-danger btn-sm edit-only-ui" title="このレシート全体を削除">削除</button>
             </div>
           </div>
@@ -100,6 +106,79 @@
         <!-- Dynamically generated floor items -->
       </div>
     </main>
+
+    <!-- Data Sync & Backup Modal -->
+    <div id="sync-modal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>🔄 データ同期・共有・バックアップ</h2>
+          <button type="button" class="modal-close-btn" id="close-sync-modal-btn" title="閉じる">✕</button>
+        </div>
+        
+        <div class="modal-body">
+          <p class="modal-desc">
+            作成したレシートは各端末のブラウザ（LocalStorage）に保存されています。<br>
+            ネットとローカル間、または別端末（スマホ・PC）へ最新データを反映するには、以下のいずれかの方法をご利用ください。
+          </p>
+
+          <!-- Method 1: File Export & Import -->
+          <div class="sync-section">
+            <div class="sync-section-title">
+              <span class="sync-icon">📁</span>
+              <strong>方法1: JSONファイルで同期（おすすめ）</strong>
+            </div>
+            <p class="sync-subtext">全レシート（画像含む）をファイルに保存し、別端末やローカルで読み込みます。</p>
+            <div class="sync-actions-row">
+              <button type="button" id="export-json-btn" class="btn btn-primary">
+                📤 データをファイル保存 (.json)
+              </button>
+              <label class="btn btn-secondary file-upload-btn">
+                📥 ファイルから読み込み
+                <input type="file" id="import-json-input" accept=".json" class="photo-input-hidden">
+              </label>
+            </div>
+          </div>
+
+          <!-- Method 2: Text / Sync Code -->
+          <div class="sync-section">
+            <div class="sync-section-title">
+              <span class="sync-icon">📋</span>
+              <strong>方法2: 同期コード（テキスト）で同期</strong>
+            </div>
+            <p class="sync-subtext">コードをコピーしてLINEやメモ等で別端末に送り、貼り付けるだけで即座に取り込めます。</p>
+            <div class="sync-actions-row">
+              <button type="button" id="copy-sync-code-btn" class="btn btn-primary">
+                📋 同期コードをコピー
+              </button>
+            </div>
+            <div class="code-import-area">
+              <textarea id="import-sync-code-textarea" class="custom-textarea" placeholder="別端末からコピーした同期コードをここに貼り付け"></textarea>
+              <div class="code-import-actions">
+                <button type="button" id="import-sync-code-btn" class="btn btn-success btn-sm">
+                  📥 貼り付けたコードから復元・取り込み
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Method 3: Local app.js DEFAULT_RECEIPTS Generator -->
+          <div class="sync-section">
+            <div class="sync-section-title">
+              <span class="sync-icon">💻</span>
+              <strong>方法3: ローカルファイル（app.js）の初期データに反映</strong>
+            </div>
+            <p class="sync-subtext">
+              ネットで作成したレシートをローカルの <code>app.js</code> に恒久的に反映させたい場合、下のボタンで生成されたコードをコピーし、<code>app.js</code> の <code>DEFAULT_RECEIPTS</code> に貼り付けて保存してください。
+            </p>
+            <div class="sync-actions-row">
+              <button type="button" id="copy-default-code-btn" class="btn btn-secondary">
+                📋 app.js用コード（DEFAULT_RECEIPTS）をコピー
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>
