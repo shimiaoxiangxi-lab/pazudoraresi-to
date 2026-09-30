@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.0">
 </head>
 <body>
   <div class="app-container">
@@ -147,8 +147,11 @@
             </div>
             <p class="sync-subtext">コードをコピーしてLINEやメモ等で別端末に送り、貼り付けるだけで即座に取り込めます。</p>
             <div class="sync-actions-row">
-              <button type="button" id="copy-sync-code-btn" class="btn btn-primary">
-                📋 同期コードをコピー
+              <button type="button" id="copy-sync-code-btn" class="btn btn-primary" title="画像を含む全データをコピー">
+                📋 全データコードをコピー
+              </button>
+              <button type="button" id="copy-light-sync-code-btn" class="btn btn-secondary" title="画像を除外して立ち回りテキストのみコピー（LINEメッセージでそのまま送れます）">
+                💬 軽量コードをコピー (LINE用・画像なし)
               </button>
             </div>
             <div class="code-import-area">
@@ -161,18 +164,22 @@
             </div>
           </div>
 
-          <!-- Method 3: Local app.js DEFAULT_RECEIPTS Generator -->
+          <!-- Method 3: GitHub / app.js Default Data Embed (Best for mobile) -->
           <div class="sync-section">
             <div class="sync-section-title">
               <span class="sync-icon">💻</span>
-              <strong>方法3: ローカルファイル（app.js）の初期データに反映</strong>
+              <strong>方法3: レシートを組み込んだ app.js を作成（★スマホ操作不要・おすすめ）</strong>
             </div>
             <p class="sync-subtext">
-              ネットで作成したレシートをローカルの <code>app.js</code> に恒久的に反映させたい場合、下のボタンで生成されたコードをコピーし、<code>app.js</code> の <code>DEFAULT_RECEIPTS</code> に貼り付けて保存してください。
+              PCで作成したレシート（画像含む）を初期データとして組み込んだ <code>app.js</code> をダウンロードします。<br>
+              ダウンロードした <code>app.js</code> をそのままGitHubにアップロードするだけで、<strong>スマホ側でのファイル読み込みやコード貼り付けが一切不要</strong>になり、スマホで開くだけで画像付きレシートが自動表示されます！
             </p>
             <div class="sync-actions-row">
+              <button type="button" id="download-app-js-btn" class="btn btn-primary">
+                💾 レシート組み込み済み app.js をダウンロード
+              </button>
               <button type="button" id="copy-default-code-btn" class="btn btn-secondary">
-                📋 app.js用コード（DEFAULT_RECEIPTS）をコピー
+                📋 コードのみコピー
               </button>
             </div>
           </div>
@@ -181,6 +188,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=2.0"></script>
 </body>
 </html>

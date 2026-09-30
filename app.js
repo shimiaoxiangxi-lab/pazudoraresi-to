@@ -114,8 +114,10 @@ class PADSimpleReceiptAppV5 {
     this.exportJsonBtn = document.getElementById("export-json-btn");
     this.importJsonInput = document.getElementById("import-json-input");
     this.copySyncCodeBtn = document.getElementById("copy-sync-code-btn");
+    this.copyLightSyncCodeBtn = document.getElementById("copy-light-sync-code-btn");
     this.importSyncCodeTextarea = document.getElementById("import-sync-code-textarea");
     this.importSyncCodeBtn = document.getElementById("import-sync-code-btn");
+    this.downloadAppJsBtn = document.getElementById("download-app-js-btn");
     this.copyDefaultCodeBtn = document.getElementById("copy-default-code-btn");
   }
 
@@ -217,8 +219,14 @@ class PADSimpleReceiptAppV5 {
     if (this.copySyncCodeBtn) {
       this.copySyncCodeBtn.addEventListener("click", () => this.copySyncCode());
     }
+    if (this.copyLightSyncCodeBtn) {
+      this.copyLightSyncCodeBtn.addEventListener("click", () => this.copyLightSyncCode());
+    }
     if (this.importSyncCodeBtn) {
       this.importSyncCodeBtn.addEventListener("click", () => this.importSyncCode());
+    }
+    if (this.downloadAppJsBtn) {
+      this.downloadAppJsBtn.addEventListener("click", () => this.downloadUpdatedAppJs());
     }
     if (this.copyDefaultCodeBtn) {
       this.copyDefaultCodeBtn.addEventListener("click", () => this.copyDefaultCode());
@@ -753,15 +761,34 @@ class PADSimpleReceiptAppV5 {
     }
   }
 
+  cleanJsonString(rawStr) {
+    if (!rawStr) return "";
+    let str = rawStr.trim();
+    // Strip JS variable declarations (e.g. const DEFAULT_RECEIPTS = ...;)
+    if (str.startsWith("const ") || str.startsWith("let ") || str.startsWith("var ")) {
+      const eqIdx = str.indexOf("=");
+      if (eqIdx !== -1) {
+        str = str.substring(eqIdx + 1).trim();
+      }
+    }
+    // Strip trailing semicolon
+    if (str.endsWith(";")) {
+      str = str.substring(0, str.length - 1).trim();
+    }
+    return str;
+  }
+
   handleImportFile(file) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const importedData = JSON.parse(e.target.result);
+        const raw = e.target.result;
+        const cleaned = this.cleanJsonString(raw);
+        const importedData = JSON.parse(cleaned);
         this.processImportedReceipts(importedData);
       } catch (err) {
-        alert("JSONファイルの解析に失敗しました。正しいデータファイルかご確認ください。");
+        alert("ファイルの解析に失敗しました。\n正しいレシートデータ（.json）かご確認ください。\n\n詳細: " + err.message);
       }
     };
     reader.readAsText(file);
@@ -771,7 +798,7 @@ class PADSimpleReceiptAppV5 {
     try {
       const codeStr = JSON.stringify(this.receipts);
       await navigator.clipboard.writeText(codeStr);
-      this.showToastNotification("📋 同期コードをクリップボードにコピーしました！");
+      this.showToastNotification("📋 全データ同期コードをコピーしました！");
     } catch (err) {
       const ta = document.createElement("textarea");
       ta.value = JSON.stringify(this.receipts);
@@ -779,7 +806,36 @@ class PADSimpleReceiptAppV5 {
       ta.select();
       document.execCommand("copy");
       document.body.removeChild(ta);
-      this.showToastNotification("📋 同期コードをコピーしました！");
+      this.showToastNotification("📋 全データ同期コードをコピーしました！");
+    }
+  }
+
+  async copyLightSyncCode() {
+    try {
+      // Create a light copy with photos stripped out for small payload size (easily sent via LINE)
+      const lightReceipts = this.receipts.map(r => {
+        const copy = JSON.parse(JSON.stringify(r));
+        copy.partyPhoto = null;
+        copy.originalReceiptPhoto = null;
+        if (copy.floors) {
+          copy.floors.forEach(f => {
+            f.photos = [];
+            f.photo = null;
+          });
+        }
+        return copy;
+      });
+      const codeStr = JSON.stringify(lightReceipts);
+      await navigator.clipboard.writeText(codeStr);
+      this.showToastNotification("💬 軽量コード（画像なし）をコピーしました！LINEで送信できます");
+    } catch (err) {
+      const ta = document.createElement("textarea");
+      ta.value = JSON.stringify(this.receipts);
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      this.showToastNotification("💬 軽量コードをコピーしました！");
     }
   }
 
@@ -790,13 +846,66 @@ class PADSimpleReceiptAppV5 {
       return;
     }
     try {
-      const importedData = JSON.parse(raw);
+      const cleaned = this.cleanJsonString(raw);
+      const importedData = JSON.parse(cleaned);
       this.processImportedReceipts(importedData);
       if (this.importSyncCodeTextarea) {
         this.importSyncCodeTextarea.value = "";
       }
     } catch (err) {
-      alert("同期コードの解析に失敗しました。貼り付けた内容に誤りがないかご確認ください。");
+      alert("同期コードの解析に失敗しました。貼り付けた内容に誤りがないかご確認ください。\n\n詳細: " + err.message);
+    }
+  }
+
+  downloadUpdatedAppJs() {
+    try {
+      const receiptsCode = `const DEFAULT_RECEIPTS = ${JSON.stringify(this.receipts, null, 2)};`;
+      fetch('app.js')
+        .then(response => response.text())
+        .then(currentCode => {
+          const classIndex = currentCode.indexOf('class PADSimpleReceiptAppV5');
+          if (classIndex !== -1) {
+            const headerComment = "/**\n * PAD Simple Image Receipt Maker PRO (Photo Download & Persistent Box Support)\n * Keeps Party Photo & Original Receipt boxes visible and adds \"Save/Download Image\" links!\n */\n\n";
+            const rest = currentCode.substring(classIndex);
+            const fullNewAppJs = headerComment + receiptsCode + "\n\n" + rest;
+            
+            const blob = new Blob([fullNewAppJs], { type: "application/javascript" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "app.js";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            this.showToastNotification("💾 レシート組み込み済みの app.js をダウンロードしました！");
+            alert("「app.js」をダウンロードしました！\n\nこのダウンロードした app.js ファイルを GitHub にそのままアップロードして更新してください。\n\nこれでスマホや別端末でページを開くだけで、画像付きレシートが自動表示されます！");
+          } else {
+            const blob = new Blob([receiptsCode], { type: "application/javascript" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "app.js";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }
+        })
+        .catch(() => {
+          const blob = new Blob([receiptsCode], { type: "application/javascript" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "app.js";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          this.showToastNotification("💾 app.js をダウンロードしました");
+        });
+    } catch (err) {
+      alert("エラーが発生しました: " + err.message);
     }
   }
 
